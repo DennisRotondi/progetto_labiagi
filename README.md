@@ -19,3 +19,5 @@ rosbridge permette di creare il webserver su cui far circolare i msgs di ROS, è
 ```sh 
 roslaunch rosbridge_server rosbridge_websocket.launch 
 ```
+ref: http://wiki.ros.org/rosbridge_suite
+ref: http://wiki.ros.org/roslibjs
