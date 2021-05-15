@@ -1,0 +1,64 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>progetto_labiagi</title>
+    <link type="text/css" rel="stylesheet" href="style.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-+0n0xVW2eSR5OomGNYDnhzAbDsOXxcvSN1TPprVMTNDbiYZCxYbOOl7+AMvyTG2x" crossorigin="anonymous">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-gtEjrD/SeCtmISkJkNUaaKMoLD0//ElJ19smozuHV6z3Iehds+3Ulb9Bn9Plx0x4" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="http://static.robotwebtools.org/EventEmitter2/current/eventemitter2.min.js"></script>
+    <script type="text/javascript" src="http://static.robotwebtools.org/roslibjs/current/roslib.min.js"></script>
+    <script type="text/javascript" src="script.js"></script>
+</head>
+<body>
+    <div class="container mt-lg-5">
+        <h1 id="welcome">Ciao accedi</h1>
+            <select class="form-select" id="persona">
+              <option disabled selected value="0">Chi sei...</option>
+              <option value="1">Mario</option>
+              <option value="2">Dennis</option>
+              <option value="3">Sara</option>
+            </select>
+        <div id="stanza" class="invisibile">
+            <select class="form-select" id="persona">
+                <option disabled selected value="0">dove sei...</option>
+                <option value="1">stanza 1</option>
+                <option value="2">stanza 2</option>
+                <option value="3">stanza 3</option>
+                <option value="4">stanza 4</option>
+                <option value="5">stanza 5</option>
+                <option value="6">stanza 6</option>
+              </select>
+        </div>
+        <div id="controllo" class="invisibile">
+            <div class="row">
+                <h3>Seleziona la destinazione</h2>
+                <div class="btn-group mt-1" role="group" aria-label="Basic outlined example">
+                    <button type="button" class="stanza btn btn-outline-primary" data-target="stanza1">Stanza 1</button>
+                    <button type="button" class="stanza btn btn-outline-primary" data-target="stanza2">Stanza 2</button>
+                    <button type="button" class="stanza btn btn-outline-primary" data-target="stanza3">Stanza 3</button>
+                    <button type="button" class="stanza btn btn-outline-primary" data-target="stanza4">Stanza 4</button>
+                    <button type="button" class="stanza btn btn-outline-primary" data-target="stanza5">Stanza 5</button>
+                    <button type="button" class="stanza btn btn-outline-primary" data-target="stanza6">Stanza 6</button>
+                </div>
+            </div>
+            <div class="row">
+                <div class="btn-group mt-1" role="group" aria-label="Basic outlined example">
+                    <button type="button" class="btn btn-outline-primary">conferma</button>
+                    <button type="button" class="btn btn-outline-secondary">annulla</button>
+                </div>
+            </div>
+            <div class="row mt-1">
+                <div class="mb-3">
+                    <label for="output" class="form-label">output</label>
+                    <textarea class="form-control" disabled id="output" rows="15"></textarea>
+                </div>   
+            </div>
+            </div>
+        </div>
+    </div>
+    
+</body>
+</html>
