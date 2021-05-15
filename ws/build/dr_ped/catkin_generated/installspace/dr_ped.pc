@@ -1,8 +1,0 @@
-prefix=/home/dennis/progetto_labiagi/ws/install
-
-Name: dr_ped
-Description: Description of dr_ped
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: roscpp std_msgs message_runtime
