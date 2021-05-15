@@ -35,7 +35,7 @@ function update_status(){
     //todo se si dirige in un'altra stanza non disponibile
 
     //update in base al pub
-    enable_action();
+    handler_status();
 }
 
 function handler_buttons(to_disable, to_enable){
@@ -43,8 +43,8 @@ function handler_buttons(to_disable, to_enable){
     $(to_enable).prop("disabled",false);
 }
 
-function enable_action(){
-    console.log(stato);
+function handler_status(){
+    
     switch (stato){
         case stati.non_disponibile:
             handler_buttons($(".btn"),$(""))
@@ -60,6 +60,11 @@ function enable_action(){
     }
 }
 
+function chiudi_connessione(){
+    stato=stati.non_disponibile;
+    handler_status();
+}
+
 function setup_ros(){
     
     ros = new ROSLIB.Ros({
@@ -67,15 +72,17 @@ function setup_ros(){
     });
     
     ros.on('connection', () => {
-        log('Connected to websocket server.');
+        log('Connessione con il robot stabilita.');
     });
 
     ros.on('error', (error) => {
-        log('Error connecting to websocket server: ', error);
+        log('Errore di connessione con il robot.', error);
+        chiudi_connessione()
     });
 
     ros.on('close', () => {
-        log('Connection to websocket server closed.');
+        log('La connessione con il robot è stata interrotta.');
+        chiudi_connessione()
     });
 
     pub_obiettivo = new ROSLIB.Topic({
