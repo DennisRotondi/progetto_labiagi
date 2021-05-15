@@ -37,6 +37,10 @@ void obiettivo_cb(const dr_ped::Obiettivo& obiettivo)
 
       pub_goal.publish(new_goal_msg);
 
+      std_msgs::String prova;
+      prova.data="ciao bellissimi sto partendo";
+      logger(prova);
+
       busy=0;
     }
 }
@@ -52,9 +56,6 @@ int main(int argc, char **argv){
   pub_log = n.advertise<std_msgs::String>("/logger_web", 1000);
   sub = n.subscribe("obiettivo", 1000, obiettivo_cb);
 
-  std_msgs::String prova;
-  prova.data="ciao bellissimi";
-  logger(prova);
   // ros::Subscriber sub_tf = n.subscribe("tf", 1000, position_cb);
   // ros::Timer timer1 = n.createTimer(ros::Duration(0.5), check1_cb);
   // ros::Timer timer2 = n.createTimer(ros::Duration(50), check2_cb);
