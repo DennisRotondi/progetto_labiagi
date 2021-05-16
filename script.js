@@ -100,7 +100,7 @@ function setup_ros(){
     sub_log.subscribe(function(message) {
         log(message.data);
     });
-    //todo serve chiedere un servizio / sottoscriversi allo status del robot per capire dove si dirige e se è arrivato (eventuale msg)
+    //todo serve chiedere un servizio / sottoscriversi allo status del robot per capire dove si dirige e se è arrivato e disponibile (eventuale msg)
     //todo si sblocca solo dopo che qualcuno ha confermato o è scattato il timeout, il robot torna da dove
     //todo è partito
 
