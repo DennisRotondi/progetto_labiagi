@@ -37,9 +37,9 @@ float distance(vector<float> a, vector<float> b){
 void check1_cb(const ros::TimerEvent &event)
 { 
   //creo già qua lo stato, poi riempio il msg dentro gli if
-  std_msgs::String prova;
-  prova.data = "ciao bellissimi sto partendo";
-  logger(prova);
+  // std_msgs::String prova;
+  // prova.data = "msg periodico";
+  // logger(prova);
   if(cruising){
 
     if (distance(current_position,old_position) < 0.5)
@@ -51,7 +51,7 @@ void check1_cb(const ros::TimerEvent &event)
     {
       //  ROS_INFO("qualcosa");
       // todo wait for message confirm ros::topic::waitForMessage	
-      cruising = 0;
+      // cruising = 0;
     }
     
   }
@@ -105,8 +105,10 @@ void obiettivo_cb(const dr_ped::Obiettivo &obiettivo)
     target_positon[1] = new_goal_msg.pose.position.y;
 
     std_msgs::String prova;
-    prova.data = "ciao bellissimi sto partendo";
+    prova.data = "ciao sto partendo";
     logger(prova);
+
+    cruising = 0; //non va qua è solo una prova
 
   }
 }
