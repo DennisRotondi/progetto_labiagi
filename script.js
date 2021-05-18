@@ -35,20 +35,10 @@ function log(str){
 function update_status(stato_msg){
     log(stato_msg.commento);
     if(stato_msg.stato == stati.disponibile){
-        if(stato_msg.stanza_target == stanza_corrente){
-            stato=stati.disp_corrente;
-        }
-        else{
-            stato=stati.disponibile;
-        }
+        stato = (stato_msg.stanza_target == stanza_corrente) ? stati.disp_corrente : stati.disponibile;
     }
     else if(stato_msg.stato == stati.attesa_conferma){
-        if(stato_msg.stanza_target=stanza_corrente){
-            stato=stati.attesa_conferma;
-        }
-        else{
-            stato=stati.non_disponibile;
-        }
+        stato = (stato_msg.stanza_target == stanza_corrente) ? stati.attesa_conferma : stati.non_disponibile;
     }
     else{ //è in navigazione
         if(stato_msg.stanza_target == stanza_corrente){
@@ -59,8 +49,6 @@ function update_status(stato_msg){
             stato=stati.non_disponibile;
         }
     }
-    //todo se si dirige nella mia stanza in arrivo e posso confermare
-    //todo se si dirige in un'altra stanza non disponibile
 
     //update in base al pub
     handler_status();
@@ -142,8 +130,6 @@ function setup_ros(){
     sub_log.subscribe(function(stato_msg) {
         update_status(stato_msg);
     });
-    //todo serve chiedere un servizio / sottoscriversi allo status del robot per capire dove si dirige e se è arrivato e disponibile (eventuale msg)
-    //todo si sblocca solo dopo che qualcuno ha confermato o è scattato il timeout, il robot torna da dove è partito
 
 }
 
