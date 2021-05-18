@@ -18,7 +18,7 @@ enum status
 
 //globals
 status stato = disponibile;
-string stanza_target = ""; //di fatto è l'ultima stanza ragiunta, quella dove si trova attualmente
+string stanza_target = ""; //di fatto è l'ultima stanza raggiunta, quella dove si trova attualmente
 ros::Publisher pub_goal;
 ros::Publisher pub_log;
 ros::Subscriber sub_ob;
@@ -38,7 +38,7 @@ void logger(dr_ped::Stato stato)
 }
 
 //aggiornamento posizione per i check
-void position_cb()// arg se come listnerconst tf2_msgs::TFMessage &tf
+void position_cb() // arg se come listnerconst tf2_msgs::TFMessage &tf
 {
   if (tfBuffer.canTransform("map", "base_link", ros::Time(0)))
   {
@@ -58,9 +58,6 @@ float distance(vector<float> a, vector<float> b)
 
 void check_cb(const ros::TimerEvent &event)
 {
-
-  
-
   dr_ped::Stato stato_msg;
   stato_msg.stato = stato;
   stato_msg.stanza_target = stanza_target;
@@ -92,7 +89,7 @@ void check_cb(const ros::TimerEvent &event)
       stuck_count = 0;
       stato = attesa_conferma;
       stato_msg.stato = stato;
-      stato_msg.commento = "Il robot è in attesa di conferma istruzione"; //loggo prima perché il wait blocca tutto a quanto pare...
+      stato_msg.commento = "Il robot è arrivato ed è in attesa di conferma arrivo"; //loggo prima perché il wait blocca tutto a quanto pare...
       logger(stato_msg);
       //https://answers.ros.org/question/293890/how-to-use-waitformessage-properly/
       std_msgs::StringConstPtr wait_msg = ros::topic::waitForMessage<std_msgs::String>("/conferma_dr_ped", ros::Duration(30));
