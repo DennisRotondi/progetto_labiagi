@@ -10,31 +10,63 @@ var waypoints = {
 }
 
 var utente;
-var posizione;
+var stanza_corrente;
 var ros;
-var dst;
+var stanza_idx;
 var pub_obiettivo;
+var pub_conferma;
 var sub_log;
 
 var stati = {
-    non_disponibile: 0,
-    in_arrivo: 1,
-    disponibile: 2,
-    stanza_corrente: 3 //è nella stanza corrente solo se ne confermo l'arrivo
+    disponibile: 0, 
+    in_arrivo: 1, //se è in navigazione verso di noi
+    attesa_conferma: 2, //è nella stanza corrente e devo confermarne l'arrivo
+    non_disponibile: 3, //se è in navigazione non verso di noi
+    disp_corrente: 4
 };
 
-var stato=stati.non_disponibile; //! 0 significa che non sei il destinatario di status non disponibile
+var stato; //! 0 significa che non sei il destinatario di status non disponibile
 
 
 function log(str){
     $("#output").val(str+"\n"+$("#output").val());
 }
 
-function update_status(){
+function update_status(stato_msg){
+    log(stato_msg.commento);
+    if(stato_msg.stato==stati.disponibile){
+        if(stato_msg.stanza_target=stanza_corrente){
+            stato=stati.disp_corrente;
+        }
+        else{
+            stato=stati.disponibile;
+        }
+    }
+    else if(stato_msg.stato == stati.attesa_conferma){
+        if(stato_msg.stanza_target=stanza_corrente){
+            stato=stati.attesa_conferma;
+        }
+        else{
+            stato=stati.non_disponibile;
+        }
+    }
+    else{ //è in navigazione
+        if(stato_msg.stanza_target=stanza_corrente){
+            stato=stati.in_arrivo;
+        }
+        else{
+            stato=stati.non_disponibile;
+        }
+    }
     //todo se si dirige nella mia stanza in arrivo e posso confermare
     //todo se si dirige in un'altra stanza non disponibile
 
     //update in base al pub
+    handler_status();
+}
+
+function set_stato(stato){
+    stato=stato;
     handler_status();
 }
 
@@ -44,19 +76,21 @@ function handler_buttons(to_disable, to_enable){
 }
 
 function handler_status(){
-    
     switch (stato){
         case stati.non_disponibile:
-            handler_buttons($(".btn"),$(""))
+            handler_buttons($(".btn"),$(""));
             break;
         case stati.in_arrivo:
-            handler_buttons($(".btn"),$("#conferma"))
+            handler_buttons($(".btn"),$(""));
+            break;
+        case stati.disp_corrente:
+            handler_buttons($(".btn"),$(".stanza"));
             break;
         case stati.disponibile:
-            handler_buttons($(".btn"),$("#chiama"))
+            handler_buttons($(".btn"),$("#chiama"));
             break;
-        case stati.stanza_corrente:
-            handler_buttons($(".btn"),$(".stanza"))   
+        case stati.attesa_conferma:
+            handler_buttons($(".btn"),$("#conferma"));   
     }
 }
 
@@ -91,49 +125,64 @@ function setup_ros(){
         messageType : 'dr_ped/Obiettivo'
     });
 
+    pub_conferma = new ROSLIB.Topic({
+        ros : ros,
+        name : '/conferma_dr_ped',
+        messageType : 'std_msgs/String'
+    });
+    //conferma_dr_ped
     sub_log = new ROSLIB.Topic({
         ros : ros,
         name : '/logger_web',
-        messageType : 'std_msgs/String'
+        messageType : 'dr_ped/Stato'
       });
     
-    sub_log.subscribe(function(message) {
-        log(message.data);
+    sub_log.subscribe(function(stato_msg) {
+        update_status(stato_msg);
     });
     //todo serve chiedere un servizio / sottoscriversi allo status del robot per capire dove si dirige e se è arrivato e disponibile (eventuale msg)
-    //todo si sblocca solo dopo che qualcuno ha confermato o è scattato il timeout, il robot torna da dove
-    //todo è partito
+    //todo si sblocca solo dopo che qualcuno ha confermato o è scattato il timeout, il robot torna da dove è partito
 
 }
 
 $(document).ready(() => {
-    update_status();
+    
     $("#persona").on('change', () => {
 		$("#welcome").html("Ciao "+$("#persona option:selected").text());
         utente=parseInt($("#persona option:selected").attr("value"));
         $("#stanza").removeClass("invisibile");
         $("#persona").addClass("invisibile");
+        set_stato(stati.non_disponibile);
         setup_ros(); //mi connetto a ros
     });
 
     $("#stanza").on('change', () => {
-        posizione=$("#stanza option:selected").attr("value");
+        stanza_corrente=$("#stanza option:selected").attr("value");
         $("#controllo").removeClass("invisibile");
-        log("sei nella stanza "+posizione);
+        log("sei nella "+stanza_corrente);
     });
 
     $(".stanza").on('click', (event) => {
-        dst=waypoints[$(event.target).attr("data-target")]
+        stanza_idx = $(event.target).attr("data-target");
+        var dst = waypoints[stanza_idx];
         log("verso la destinazione "+dst);
         var obiet = new ROSLIB.Message({
             sender : utente,
+            id_stanza: stanza_idx,
             x : dst[0],
             y : dst[1],
             theta : dst[2]
         });
+        set_stato(stati.in_arrivo);
         pub_obiettivo.publish(obiet);
     });
 
-    
+    $("#conferma").on('click', (event) => {
+        var conferma = new ROSLIB.Message({
+            data : "conferma"
+        });
+        pub_conferma.publish(conferma);
+    });
+    // update_status(); //! per ora commentato così da poter inviare i msg
 
 });
