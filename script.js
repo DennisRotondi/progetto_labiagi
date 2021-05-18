@@ -51,8 +51,9 @@ function update_status(stato_msg){
         }
     }
     else{ //è in navigazione
-        if(stato_msg.stanza_target=stanza_corrente){
+        if(stato_msg.stanza_target == stanza_corrente){
             stato=stati.in_arrivo;
+            log("il robot sta arrivando da te");
         }
         else{
             stato=stati.non_disponibile;
