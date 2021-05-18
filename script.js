@@ -34,8 +34,8 @@ function log(str){
 
 function update_status(stato_msg){
     log(stato_msg.commento);
-    if(stato_msg.stato==stati.disponibile){
-        if(stato_msg.stanza_target=stanza_corrente){
+    if(stato_msg.stato == stati.disponibile){
+        if(stato_msg.stanza_target == stanza_corrente){
             stato=stati.disp_corrente;
         }
         else{
@@ -65,8 +65,8 @@ function update_status(stato_msg){
     handler_status();
 }
 
-function set_stato(stato){
-    stato=stato;
+function set_stato(new_stato){
+    stato=new_stato;
     handler_status();
 }
 
@@ -76,6 +76,7 @@ function handler_buttons(to_disable, to_enable){
 }
 
 function handler_status(){
+    // log("stato "+stato);
     switch (stato){
         case stati.non_disponibile:
             handler_buttons($(".btn"),$(""));
@@ -145,6 +146,20 @@ function setup_ros(){
 
 }
 
+function send_obiettivo(stanza_obiet){
+    var dst = waypoints[stanza_obiet];
+    log("verso la destinazione "+dst);
+    var obiet = new ROSLIB.Message({
+        sender : utente,
+        id_stanza: stanza_obiet,
+        x : dst[0],
+        y : dst[1],
+        theta : dst[2]
+    });
+    set_stato(stati.in_arrivo);
+    pub_obiettivo.publish(obiet);
+}
+
 $(document).ready(() => {
     
     $("#persona").on('change', () => {
@@ -158,23 +173,14 @@ $(document).ready(() => {
 
     $("#stanza").on('change', () => {
         stanza_corrente=$("#stanza option:selected").attr("value");
+        // console.log(stanza_corrente);
         $("#controllo").removeClass("invisibile");
         log("sei nella "+stanza_corrente);
     });
 
     $(".stanza").on('click', (event) => {
         stanza_idx = $(event.target).attr("data-target");
-        var dst = waypoints[stanza_idx];
-        log("verso la destinazione "+dst);
-        var obiet = new ROSLIB.Message({
-            sender : utente,
-            id_stanza: stanza_idx,
-            x : dst[0],
-            y : dst[1],
-            theta : dst[2]
-        });
-        set_stato(stati.in_arrivo);
-        pub_obiettivo.publish(obiet);
+        send_obiettivo(stanza_idx);
     });
 
     $("#conferma").on('click', (event) => {
@@ -183,6 +189,9 @@ $(document).ready(() => {
         });
         pub_conferma.publish(conferma);
     });
-    // update_status(); //! per ora commentato così da poter inviare i msg
+
+    $("#chiama").on('click', (event) => {
+        send_obiettivo(stanza_corrente);
+    });
 
 });

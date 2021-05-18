@@ -18,7 +18,7 @@ enum status
 
 //globals
 status stato = disponibile;
-string stanza_target = "";
+string stanza_target = ""; //di fatto è l'ultima stanza ragiunta, quella dove si trova attualmente
 ros::Publisher pub_goal;
 ros::Publisher pub_log;
 ros::Subscriber sub_ob;
@@ -37,56 +37,8 @@ void logger(dr_ped::Stato stato)
   pub_log.publish(stato);
 }
 
-float distance(vector<float> a, vector<float> b)
-{
-  return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2));
-}
-
-void check_cb(const ros::TimerEvent &event)
-{
-  dr_ped::Stato stato_msg;
-  stato_msg.stato = stato;
-  stato_msg.stanza_target = stanza_target;
-  switch (stato)
-  {
-  case disponibile:
-    stato_msg.commento = "Il robot è disponibile a ricevere istruzioni";
-    break;
-  case navigazione:
-    if (distance(current_position, old_position) < 0.5)
-    {
-      if (stuck_count++ > 10)
-      {
-        stato_msg.commento = "Il robot è bloccato e non riesce a raggiungere la posizione desiderata, shutting down";
-        ros::shutdown();
-      }
-      else
-      {
-        stato_msg.commento = "Il robot è bloccato, per ora, riproverà a muoversi a breve";
-      }
-    }
-    if (distance(current_position, target_positon) < 1.5)
-    {
-      stuck_count = 0;
-      stato = attesa_conferma;
-      //https://answers.ros.org/question/293890/how-to-use-waitformessage-properly/
-      std_msgs::StringConstPtr wait_msg = ros::topic::waitForMessage<std_msgs::String>("/conferma_dr_ped", ros::Duration(30));
-      if (wait_msg)
-        stato_msg.commento = "Il robot ha ricevuto conferma, tornerà presto disponibile";
-      else
-        stato_msg.commento = "Il robot non ha ricevuto conferma ma è arrivato, tornerà presto disponibile";
-      stanza_target = "";
-      stato = disponibile;
-    }
-    break;
-  case attesa_conferma:
-    stato_msg.commento = "Il robot è in attesa di conferma istruzione";
-    break;
-  }
-  logger(stato_msg);
-}
 //aggiornamento posizione per i check
-void position_cb(const tf2_msgs::TFMessage &tf)
+void position_cb()// arg se come listnerconst tf2_msgs::TFMessage &tf
 {
   if (tfBuffer.canTransform("map", "base_link", ros::Time(0)))
   {
@@ -97,6 +49,65 @@ void position_cb(const tf2_msgs::TFMessage &tf)
     current_position[0] = transformStamped.transform.translation.x;
     current_position[1] = transformStamped.transform.translation.y;
   }
+}
+
+float distance(vector<float> a, vector<float> b)
+{
+  return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2));
+}
+
+void check_cb(const ros::TimerEvent &event)
+{
+
+  
+
+  dr_ped::Stato stato_msg;
+  stato_msg.stato = stato;
+  stato_msg.stanza_target = stanza_target;
+  switch (stato)
+  {
+  case disponibile:
+    stato_msg.commento = "Il robot è disponibile a ricevere istruzioni";
+    break;
+  case navigazione:
+    position_cb();
+    cerr << distance(current_position, old_position) << endl;
+    cerr << distance(target_positon, current_position) << endl;
+    stato_msg.commento = "Il robot sta navigando";
+    if (distance(current_position, old_position) < 0.3)
+    {
+      if (stuck_count++ > 10)
+      {
+        stato_msg.commento = "Il robot è bloccato e non riesce a raggiungere la posizione desiderata, shutting down";
+        logger(stato_msg);
+        ros::shutdown();
+      }
+      else
+      {
+        stato_msg.commento = "Il robot è bloccato, per ora, riproverà a muoversi a breve";
+      }
+    }
+    if (distance(target_positon, current_position) < 1.5)
+    {
+      stuck_count = 0;
+      stato = attesa_conferma;
+      stato_msg.stato = stato;
+      stato_msg.commento = "Il robot è in attesa di conferma istruzione"; //loggo prima perché il wait blocca tutto a quanto pare...
+      logger(stato_msg);
+      //https://answers.ros.org/question/293890/how-to-use-waitformessage-properly/
+      std_msgs::StringConstPtr wait_msg = ros::topic::waitForMessage<std_msgs::String>("/conferma_dr_ped", ros::Duration(30));
+      if (wait_msg)
+        stato_msg.commento = "Il robot ha ricevuto conferma, tornerà presto disponibile";
+      else
+        stato_msg.commento = "Il robot non ha ricevuto conferma ma è arrivato, tornerà presto disponibile";
+      stato = disponibile;
+    }
+    break;
+  case attesa_conferma:
+    stato_msg.commento = "Il robot è in attesa di conferma istruzione";
+    break;
+  }
+  logger(stato_msg);
 }
 
 void obiettivo_cb(const dr_ped::Obiettivo &obiettivo)
@@ -146,10 +157,11 @@ int main(int argc, char **argv)
   ros::Rate loop_rate(10);
 
   pub_goal = n.advertise<geometry_msgs::PoseStamped>("/move_base_simple/goal", 1000);
+  tf2_ros::TransformListener tfListener(tfBuffer);
   pub_log = n.advertise<dr_ped::Stato>("/logger_web", 1000);
   sub_ob = n.subscribe("obiettivo", 1000, obiettivo_cb);
 
-  sub_tf = n.subscribe("tf", 1000, position_cb);
+  // sub_tf = n.subscribe("tf", 1000, position_cb);
   timer = n.createTimer(ros::Duration(5), check_cb);
 
   ros::spin();
