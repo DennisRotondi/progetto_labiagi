@@ -38,7 +38,7 @@ void logger(dr_ped::Stato stato)
 }
 
 //aggiornamento posizione per i check
-void position_cb() // arg se come listnerconst tf2_msgs::TFMessage &tf
+void get_position() // arg se come listnerconst tf2_msgs::TFMessage &tf
 {
   if (tfBuffer.canTransform("map", "base_link", ros::Time(0)))
   {
@@ -67,7 +67,7 @@ void check_cb(const ros::TimerEvent &event)
     stato_msg.commento = "Il robot è disponibile a ricevere istruzioni";
     break;
   case navigazione:
-    position_cb();
+    get_position();
     // cerr << distance(current_position, old_position) << endl;
     // cerr << distance(target_positon, current_position) << endl;
     stato_msg.commento = "Il robot sta navigando";
@@ -158,7 +158,8 @@ int main(int argc, char **argv)
   pub_log = n.advertise<dr_ped::Stato>("/logger_web", 1000);
   sub_ob = n.subscribe("obiettivo", 1000, obiettivo_cb);
 
-  // sub_tf = n.subscribe("tf", 1000, position_cb);
+  // sub_tf = n.subscribe("tf", 1000, get_position);
+  get_position();
   timer = n.createTimer(ros::Duration(5), check_cb);
 
   ros::spin();
