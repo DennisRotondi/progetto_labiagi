@@ -33,7 +33,7 @@ size_t seq = 10;
 
 void logger(dr_ped::Stato stato)
 {
-  cerr << stato.commento << endl;
+  // cerr << stato.commento << endl;
   pub_log.publish(stato);
 }
 
@@ -68,8 +68,8 @@ void check_cb(const ros::TimerEvent &event)
     break;
   case navigazione:
     position_cb();
-    cerr << distance(current_position, old_position) << endl;
-    cerr << distance(target_positon, current_position) << endl;
+    // cerr << distance(current_position, old_position) << endl;
+    // cerr << distance(target_positon, current_position) << endl;
     stato_msg.commento = "Il robot sta navigando";
     if (distance(current_position, old_position) < 0.3)
     {
