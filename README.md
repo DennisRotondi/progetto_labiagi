@@ -11,7 +11,7 @@ progetto_labiagi: web client per pick and delivery
 
 ```sh 
 source devel/setup.bash  
-cd /home/dennis/labiagi_2020_21/workspaces/srrg2_labiagi/src/srrg2_navigation_2d/srrg2_navigation_2d/config
+cd /home/dennis/labiagi_2020_21/workspaces/srrg2_labiagi/src/srrg2_navigation_2d/config
 /home/dennis/labiagi_2020_21/srrg2_webctl/proc_webctl run_navigation.webctl 
 ```
 
