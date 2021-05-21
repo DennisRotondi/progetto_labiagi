@@ -135,7 +135,7 @@ function setup_ros(){
 
 function send_obiettivo(stanza_obiet){
     var dst = waypoints[stanza_obiet];
-    log("Verso la destinazione "+stanza_obiet+" "+dst);
+    log("Verso la destinazione: "+stanza_obiet+" [ "+dst+" ]");
     var obiet = new ROSLIB.Message({
         sender : utente,
         id_stanza: stanza_obiet,
@@ -155,8 +155,6 @@ $(document).ready(() => {
         // $("#stanza").removeClass("invisibile");
         $("#carica_mappa").removeClass("invisibile");
         $("#persona").addClass("invisibile");
-        set_stato(stati.non_disponibile);
-        setup_ros(); //mi connetto a ros
     });
     
     $("#input_mappa").on('change', () => {
@@ -181,6 +179,8 @@ $(document).ready(() => {
                 });
                 $("#carica_mappa").addClass("invisibile");
                 $("#stanza").removeClass("invisibile");
+                set_stato(stati.non_disponibile);
+                setup_ros(); //mi connetto a ros
                 
             };
         
@@ -189,6 +189,7 @@ $(document).ready(() => {
     });
     
     $("#stanza").on('change', () => {
+        set_stato(stati.non_disponibile);
         stanza_corrente=$("#stanza option:selected").attr("value");
         // console.log(stanza_corrente);
         $("#controllo").removeClass("invisibile");

@@ -20,6 +20,9 @@ prima di usarlo bisogna fare il source di dr_ped per avere i messaggi personaliz
 ```sh 
 roslaunch rosbridge_server rosbridge_websocket.launch 
 ```
+
+Punti nel json.test presi con rostopic echo /move_base_simple/goal
+
 ref: http://wiki.ros.org/rosbridge_suite
 
 ref: http://wiki.ros.org/roslibjs
