@@ -1,13 +1,12 @@
-//todo in futuro il setup di stanza e relative posizioni si può fare attraverso json
-//todo selezionando la mappa sulla quale si sta operando
-var waypoints = { 
-    "stanza1" : [58,13,0],
-    "stanza2" : [53,18,0],
-    "stanza3" : [0,0,0],
-    "stanza4" : [0,0,0],
-    "stanza5" : [0,0,0],
-    "stanza6" : [0,0,0]
-}
+var waypoints;
+//= { 
+//     "stanza1" : [58,13,0],
+//     "stanza2" : [53,18,0],
+//     "stanza3" : [0,0,0],
+//     "stanza4" : [0,0,0],
+//     "stanza5" : [0,0,0],
+//     "stanza6" : [0,0,0]
+// }
 
 var utente;
 var stanza_corrente;
@@ -28,6 +27,7 @@ var stati = {
 var stato; //! 0 significa che non sei il destinatario di status non disponibile
 
 
+
 function log(str){
     $("#output").val(str+"\n"+$("#output").val());
 }
@@ -43,13 +43,13 @@ function update_status(stato_msg){
     else{ //è in navigazione
         if(stato_msg.stanza_target == stanza_corrente){
             stato=stati.in_arrivo;
-            log("il robot sta arrivando da te");
+            log("Il robot sta arrivando da te.");
         }
         else{
             stato=stati.non_disponibile;
         }
     }
-
+    
     //update in base al pub
     handler_status();
 }
@@ -70,17 +70,17 @@ function handler_status(){
         case stati.non_disponibile:
             handler_buttons($(".btn"),$(""));
             break;
-        case stati.in_arrivo:
-            handler_buttons($(".btn"),$(""));
+            case stati.in_arrivo:
+                handler_buttons($(".btn"),$(""));
+                break;
+                case stati.disp_corrente:
+                    handler_buttons($(".btn"),$(".stanza"));
+                    break;
+                    case stati.disponibile:
+                        handler_buttons($(".btn"),$("#chiama"));
             break;
-        case stati.disp_corrente:
-            handler_buttons($(".btn"),$(".stanza"));
-            break;
-        case stati.disponibile:
-            handler_buttons($(".btn"),$("#chiama"));
-            break;
-        case stati.attesa_conferma:
-            handler_buttons($(".btn"),$("#conferma"));   
+            case stati.attesa_conferma:
+                handler_buttons($(".btn"),$("#conferma"));   
     }
 }
 
@@ -92,29 +92,29 @@ function chiudi_connessione(){
 function setup_ros(){
     
     ros = new ROSLIB.Ros({
-      url : 'ws://192.168.1.69:9090'
+        url : 'ws://192.168.1.69:9090'
     });
     
     ros.on('connection', () => {
         log('Connessione con il robot stabilita.');
     });
-
+    
     ros.on('error', (error) => {
         log('Errore di connessione con il robot.', error);
         chiudi_connessione()
     });
-
+    
     ros.on('close', () => {
         log('La connessione con il robot è stata interrotta.');
         chiudi_connessione()
     });
-
+    
     pub_obiettivo = new ROSLIB.Topic({
         ros : ros,
         name : '/obiettivo',
         messageType : 'dr_ped/Obiettivo'
     });
-
+    
     pub_conferma = new ROSLIB.Topic({
         ros : ros,
         name : '/conferma_dr_ped',
@@ -125,17 +125,17 @@ function setup_ros(){
         ros : ros,
         name : '/logger_web',
         messageType : 'dr_ped/Stato'
-      });
+    });
     
     sub_log.subscribe(function(stato_msg) {
         update_status(stato_msg);
     });
-
+    
 }
 
 function send_obiettivo(stanza_obiet){
     var dst = waypoints[stanza_obiet];
-    log("verso la destinazione "+dst);
+    log("Verso la destinazione "+stanza_obiet+" "+dst);
     var obiet = new ROSLIB.Message({
         sender : utente,
         id_stanza: stanza_obiet,
@@ -150,26 +150,51 @@ function send_obiettivo(stanza_obiet){
 $(document).ready(() => {
     
     $("#persona").on('change', () => {
-		$("#welcome").html("Ciao "+$("#persona option:selected").text());
+        $("#welcome").html("Ciao "+$("#persona option:selected").text());
         utente=parseInt($("#persona option:selected").attr("value"));
-        $("#stanza").removeClass("invisibile");
+        // $("#stanza").removeClass("invisibile");
+        $("#carica_mappa").removeClass("invisibile");
         $("#persona").addClass("invisibile");
         set_stato(stati.non_disponibile);
         setup_ros(); //mi connetto a ros
     });
+    
+    $("#input_mappa").on('change', () => {
+        
+        console.log($("#input_mappa")[0].files[0]);
+        if ($("#input_mappa")[0].files.length>0) {
 
+            var myFile = $("#input_mappa")[0].files[0];
+            var reader = new FileReader();
+            
+            reader.onload = function(e) {
+                waypoints = JSON.parse(e.target.result);
+                for (key in waypoints){
+                    $('#luogo').append("<option value= " + key +" > " + key +" </option>");
+                    var bottone = $("<button type='button' class='stanza btn btn-outline-primary' data-target=" + key +">" + key +"</button>");
+                    $('#stanze').append(bottone);
+                }
+                $(".stanza").on('click', (event) => {
+                    console.log(event.target);
+                    stanza_idx = $(event.target).attr("data-target");
+                    send_obiettivo(stanza_idx);
+                });
+                $("#carica_mappa").addClass("invisibile");
+                $("#stanza").removeClass("invisibile");
+                
+            };
+        
+            reader.readAsBinaryString(myFile); 
+        };
+    });
+    
     $("#stanza").on('change', () => {
         stanza_corrente=$("#stanza option:selected").attr("value");
         // console.log(stanza_corrente);
         $("#controllo").removeClass("invisibile");
-        log("sei nella "+stanza_corrente);
+        log("Locazione corrente: "+stanza_corrente);
     });
-
-    $(".stanza").on('click', (event) => {
-        stanza_idx = $(event.target).attr("data-target");
-        send_obiettivo(stanza_idx);
-    });
-
+    
     $("#conferma").on('click', (event) => {
         var conferma = new ROSLIB.Message({
             data : "conferma"
