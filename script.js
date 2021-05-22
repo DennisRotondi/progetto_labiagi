@@ -8,6 +8,7 @@ var waypoints;
 //     "stanza6" : [0,0,0]
 // }
 
+var websocket = 'ws://192.168.1.69:9090';
 var utente;
 var stanza_corrente;
 var ros;
@@ -15,6 +16,7 @@ var stanza_idx;
 var pub_obiettivo;
 var pub_conferma;
 var sub_log;
+
 
 var stati = {
     disponibile: 0, 
@@ -92,7 +94,7 @@ function chiudi_connessione(){
 function setup_ros(){
     
     ros = new ROSLIB.Ros({
-        url : 'ws://192.168.1.69:9090'
+        url : websocket
     });
     
     ros.on('connection', () => {
