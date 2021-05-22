@@ -1,4 +1,25 @@
+body{
+    background-color: #832232!important;
+    color: #fff!important;
+}
+
+
 .invisibile{
     visibility: hidden;
     display: none!important;
+}
+
+.form-select, .form-control {
+    background-color: #fff!important;
+    color: #334463!important;
+}
+
+textarea{
+    color: #334463!important;
+}
+
+.btn-outline-primary{
+    background-color: #fff!important;
+    border-color: #3c546c!important;
+    color: #3c546c!important;
 }
