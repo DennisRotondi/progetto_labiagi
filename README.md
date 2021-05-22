@@ -22,6 +22,7 @@ roslaunch rosbridge_server rosbridge_websocket.launch
 ```
 
 Punti nel json.test presi con rostopic echo /move_base_simple/goal
+
 demo_yt: https://www.youtube.com/watch?v=Z7oPy9IhsZQ
 
 ref: http://wiki.ros.org/rosbridge_suite
