@@ -30,6 +30,8 @@ Per usarlo connettendosi da browser, all'interno della cartella fare:
 ```sh 
 python3 -m http.server
 ```
+alla porta 8000 dell'indirizzo sopra sarà presente il nostro client.
+
 
 Potrebbe essere necessario:
 ```sh 
