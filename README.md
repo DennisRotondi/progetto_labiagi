@@ -25,6 +25,19 @@ Punti nel json.test presi con rostopic echo /move_base_simple/goal
 
 demo_yt: https://www.youtube.com/watch?v=Z7oPy9IhsZQ
 
+
+Per usarlo connettendosi da browser, all'interno della cartella fare:
+```sh 
+python3 -m http.server
+```
+
+Potrebbe essere necessario:
+```sh 
+python3 -m pip install websocket
+python3 -m pip install simple_http_server
+```
+ 
+
 ref: http://wiki.ros.org/rosbridge_suite
 
 ref: http://wiki.ros.org/roslibjs
