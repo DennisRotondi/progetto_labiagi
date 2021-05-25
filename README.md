@@ -38,7 +38,7 @@ python3 -m pip install simple_http_server
 ```
 verrà resa disponibile sulla porta 8000 la pagina, indirizzo della macchina ottenibile con ifconfig. eg 192.168.1.69:8000
 
-Tutto ciò che resta da fare è loggarsi, inserire un file come quello nel test che mappa zone e punti sulla mappa e sarà possibile utilizzare a pieno il servizio di pick and delivery.
+Tutto ciò che resta da fare è loggarsi, inserire un file come "test.json" che mappa zone e punti sulla mappa e sarà possibile utilizzare a pieno il servizio di pick and delivery.
 
 # Altro
 
