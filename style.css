@@ -23,4 +23,15 @@ textarea{
     border-color: #3c546c!important;
     color: #3c546c!important;
 }
-.btn-outline-primary
+
+.btn-outline-primary{
+    background-color: #fff!important;
+    border-color: #3c546c!important;
+    color: #3c546c!important;
+}
+
+.form-control:focus, .form-select:focus, .btn-outline-primary:focus{
+    border-color: rgb(131, 34, 50)!important;
+    box-shadow: inset 0 1px 1px rgb(186, 139, 148,0.075), 0 0 8px rgb(131, 34, 50,0.6)!important;
+}
+
