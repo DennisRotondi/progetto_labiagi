@@ -8,7 +8,7 @@ var waypoints;
 //     "stanza6" : [0,0,0]
 // }
 
-var websocket = 'ws://192.168.1.69:9090';
+var websocket; //192.168.1.69:9090 se da altra macchina
 var utente;
 var stanza_corrente;
 var ros;
@@ -137,7 +137,7 @@ function setup_ros(){
 
 function send_obiettivo(stanza_obiet){
     var dst = waypoints[stanza_obiet];
-    log("Verso la destinazione: "+stanza_obiet+" [ "+dst+" ]");
+    log("Inviata richiesta per la destinazione: "+stanza_obiet+" [ "+dst+" ]");
     var obiet = new ROSLIB.Message({
         sender : utente,
         id_stanza: stanza_obiet,
@@ -151,9 +151,15 @@ function send_obiettivo(stanza_obiet){
 
 $(document).ready(() => {
     
-    $("#persona").on('change', () => {
-        $("#welcome").html("Ciao "+$("#persona option:selected").text());
-        utente=parseInt($("#persona option:selected").attr("value"));
+    $("#login").on('click', () => {
+        var nome = $("#nome").val();
+        var pw = $("#password").val();
+        if(!nome || !pw ){
+            alert("inserisci nome e pw");
+            return;
+        }
+        $("#welcome").html("Ciao "+nome);
+        utente=nome+":"+pw;
         // $("#stanza").removeClass("invisibile");
         $("#carica_mappa").removeClass("invisibile");
         $("#persona").addClass("invisibile");
@@ -182,6 +188,8 @@ $(document).ready(() => {
                 $("#carica_mappa").addClass("invisibile");
                 $("#stanza").removeClass("invisibile");
                 set_stato(stati.non_disponibile);
+                websocket="ws://"+location.hostname+":9090"; //per avere url in base a quello della macchina su cui si usa
+                
                 setup_ros(); //mi connetto a ros
                 
             };

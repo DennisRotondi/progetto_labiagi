@@ -29,6 +29,7 @@ int stuck_count = 0;
 vector<float> target_positon(2, 0);
 vector<float> old_position(2, 0);
 vector<float> current_position(2, 0);
+vector<string> utenti_autorizzati = {"Dennis:20","Sara:14","Marco:19"};
 size_t seq = 10;
 
 void logger(dr_ped::Stato stato)
@@ -107,8 +108,25 @@ void check_cb(const ros::TimerEvent &event)
   logger(stato_msg);
 }
 
+int check_sender(string sender){
+  if(find(utenti_autorizzati.begin(), utenti_autorizzati.end(), sender) != utenti_autorizzati.end()){
+    return 0;
+  }
+  else{
+    dr_ped::Stato stato_msg;
+    stato_msg.stato = stato;
+    stato_msg.stanza_target = stanza_target;
+    stato_msg.commento = "Un utente non autorizzato ha provato a dare un comando al robot. Ricordo che un ospite può solo confermare l'arrivo.";
+    logger(stato_msg);
+    return -1;
+  }
+
+}
+
 void obiettivo_cb(const dr_ped::Obiettivo &obiettivo)
-{
+{ 
+  if(check_sender(obiettivo.sender)<0) return;
+  
   dr_ped::Stato stato_msg;
 
   if (stato == disponibile)
