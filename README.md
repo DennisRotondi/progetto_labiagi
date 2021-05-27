@@ -1,5 +1,5 @@
 # Progetto LABIAGI 2020-2021
-### Web Client per pick and delivery, Dennis Rotondi
+### Dennis Rotondi, Web Client per pick and delivery
 
 Il risultato raggiunto con il codice scritto in questa repository è quello di poter configurare un'interfaccia client per notificare i nuovi obiettivi al robot facendolo muovere in un ambiente di navigazione già predisposto. Dall'interfaccia web chiunque potrà "loggare" (precisamente si crea un id sender che poi verrà usato per capire, lato server in cpp, chi veramente può manovrare il robot e chi invece può solo confermare le consegne), a questo punto si carica il file nel formato {"stanza1": [x1,y1,theta1], ...} che costituirà degli obiettivi sulla mappa. 
 Il server comunica con il client attraverso lo scambio di messaggi ROS ed usando roslibjs + rosbridge questo è l'apporccio naturale al problema.
