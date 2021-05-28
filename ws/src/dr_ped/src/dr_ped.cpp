@@ -118,7 +118,7 @@ int check_lock(string sender) {
       string utente = lock_utente.substr(0, lock_utente.find(":"));
       stato_msg.stato = stato;
       stato_msg.stanza_target = stanza_target;
-      stato_msg.commento = "Il robot è attualmente occupato con una consegna, ricevo ordini solo dall'utente " + utente;
+      stato_msg.commento = "Il robot è attualmente occupato con una consegna, riceve ordini solo dall'utente " + utente;
       logger(stato_msg);
       return -1;
     } else {
