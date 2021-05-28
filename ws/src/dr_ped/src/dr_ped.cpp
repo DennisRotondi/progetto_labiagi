@@ -1,24 +1,19 @@
-#include "ros/ros.h"
-#include <vector>
-#include "geometry_msgs/PoseStamped.h"
-#include "std_msgs/String.h"
 #include "dr_ped/Obiettivo.h"
 #include "dr_ped/Stato.h"
+#include "geometry_msgs/PoseStamped.h"
+#include "ros/ros.h"
+#include "std_msgs/String.h"
 #include "tf/tf.h"
 #include "tf2_msgs/TFMessage.h"
 #include <tf2_ros/transform_listener.h>
+#include <vector>
 using namespace std;
 
-enum status
-{
-  disponibile = 0,
-  navigazione = 1,
-  attesa_conferma = 2
-};
+enum status { disponibile = 0, navigazione = 1, attesa_conferma = 2 };
 
-//globals
+// globals
 status stato = disponibile;
-string stanza_target = ""; //di fatto è l'ultima stanza raggiunta, quella dove si trova attualmente
+string stanza_target = ""; // di fatto è l'ultima stanza raggiunta, quella dove si trova attualmente
 ros::Publisher pub_goal;
 ros::Publisher pub_log;
 ros::Subscriber sub_ob;
@@ -29,21 +24,19 @@ int stuck_count = 0;
 vector<float> target_positon(2, 0);
 vector<float> old_position(2, 0);
 vector<float> current_position(2, 0);
-vector<string> utenti_autorizzati = {"Dennis:20","Sara:14","Marco:19"};
-string lock_utente="";
+vector<string> utenti_autorizzati = {"Dennis:20", "Sara:14", "Marco:19"};
+string lock_utente = "";
 size_t seq = 10;
 
-void logger(dr_ped::Stato stato)
-{
+void logger(dr_ped::Stato stato) {
   // cerr << stato.commento << endl;
   pub_log.publish(stato);
 }
 
-//aggiornamento posizione per i check
+// aggiornamento posizione per i check
 void get_position() // arg se come listnerconst tf2_msgs::TFMessage &tf
 {
-  if (tfBuffer.canTransform("map", "base_link", ros::Time(0)))
-  {
+  if (tfBuffer.canTransform("map", "base_link", ros::Time(0))) {
     geometry_msgs::TransformStamped transformStamped;
     transformStamped = tfBuffer.lookupTransform("map", "base_link", ros::Time(0));
     old_position[0] = current_position[0];
@@ -53,18 +46,13 @@ void get_position() // arg se come listnerconst tf2_msgs::TFMessage &tf
   }
 }
 
-float distance(vector<float> a, vector<float> b)
-{
-  return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2));
-}
+float distance(vector<float> a, vector<float> b) { return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2)); }
 
-void check_cb(const ros::TimerEvent &event)
-{
+void check_cb(const ros::TimerEvent &event) {
   dr_ped::Stato stato_msg;
   stato_msg.stato = stato;
   stato_msg.stanza_target = stanza_target;
-  switch (stato)
-  {
+  switch (stato) {
   case disponibile:
     stato_msg.commento = "Il robot è disponibile a ricevere istruzioni";
     break;
@@ -73,33 +61,27 @@ void check_cb(const ros::TimerEvent &event)
     // cerr << distance(current_position, old_position) << endl;
     // cerr << distance(target_positon, current_position) << endl;
     stato_msg.commento = "Il robot sta navigando";
-    if (distance(current_position, old_position) < 0.3)
-    {
-      if (stuck_count++ > 10)
-      {
+    if (distance(current_position, old_position) < 0.3) {
+      if (stuck_count++ > 10) {
         stato_msg.commento = "Il robot è bloccato e non riesce a raggiungere la posizione desiderata, shutting down";
         logger(stato_msg);
         ros::shutdown();
-      }
-      else
-      {
+      } else {
         stato_msg.commento = "Il robot è bloccato, per ora, riproverà a muoversi a breve";
       }
     }
-    if (distance(target_positon, current_position) < 1.5)
-    {
+    if (distance(target_positon, current_position) < 1.5) {
       stuck_count = 0;
       stato = attesa_conferma;
       stato_msg.stato = stato;
-      stato_msg.commento = "Il robot è arrivato ed è in attesa di conferma arrivo"; //loggo prima perché il wait blocca tutto a quanto pare...
+      stato_msg.commento = "Il robot è arrivato ed è in attesa di conferma arrivo"; // loggo prima perché il wait blocca tutto a quanto pare...
       logger(stato_msg);
-      //https://answers.ros.org/question/293890/how-to-use-waitformessage-properly/
+      // https://answers.ros.org/question/293890/how-to-use-waitformessage-properly/
       std_msgs::StringConstPtr wait_msg = ros::topic::waitForMessage<std_msgs::String>("/conferma_dr_ped", ros::Duration(30));
-      if (wait_msg){
-        lock_utente= wait_msg->data;
-        stato_msg.commento = "Il robot ha ricevuto conferma, aspetto ordini da "+lock_utente.substr(0, lock_utente.find(":"));
-      }
-      else
+      if (wait_msg) {
+        lock_utente = wait_msg->data;
+        stato_msg.commento = "Il robot ha ricevuto conferma, aspetto ordini da " + lock_utente.substr(0, lock_utente.find(":"));
+      } else
         stato_msg.commento = "Il robot non ha ricevuto conferma ma è arrivato, tornerà presto disponibile per tutti";
       stato = disponibile;
     }
@@ -111,11 +93,10 @@ void check_cb(const ros::TimerEvent &event)
   logger(stato_msg);
 }
 
-int check_sender(string sender){
-  if(find(utenti_autorizzati.begin(), utenti_autorizzati.end(), sender) != utenti_autorizzati.end()){
+int check_sender(string sender) {
+  if (find(utenti_autorizzati.begin(), utenti_autorizzati.end(), sender) != utenti_autorizzati.end()) {
     return 0;
-  }
-  else{
+  } else {
     dr_ped::Stato stato_msg;
     stato_msg.stato = stato;
     stato_msg.stanza_target = stanza_target;
@@ -123,42 +104,39 @@ int check_sender(string sender){
     logger(stato_msg);
     return -1;
   }
-
 }
 
-int check_lock(string sender){
-  if(lock_utente!=""){
-    if(sender!=lock_utente){
+int check_lock(string sender) {
+  if (lock_utente != "") {
+    if (sender != lock_utente) {
       dr_ped::Stato stato_msg;
       string utente = lock_utente.substr(0, lock_utente.find(":"));
       stato_msg.stato = stato;
       stato_msg.stanza_target = stanza_target;
-      stato_msg.commento = "Il robot è attualmente occupato con una consegna, ricevo ordini solo dall'utente "+utente;
+      stato_msg.commento = "Il robot è attualmente occupato con una consegna, ricevo ordini solo dall'utente " + utente;
       logger(stato_msg);
       return -1;
-    }
-    else{
-      lock_utente="";
+    } else {
+      lock_utente = "";
       return 0;
-    }   
+    }
   }
 }
 
-void obiettivo_cb(const dr_ped::Obiettivo &obiettivo)
-{ 
-  if(check_sender(obiettivo.sender)) return;
-  
+void obiettivo_cb(const dr_ped::Obiettivo &obiettivo) {
+  if (check_sender(obiettivo.sender))
+    return;
+
   dr_ped::Stato stato_msg;
-  
-  if (stato == disponibile)
-  {
-    if(check_lock(obiettivo.sender)) return;
+
+  if (stato == disponibile) {
+    if (check_lock(obiettivo.sender))
+      return;
     stato = navigazione;
     stanza_target = obiettivo.id_stanza;
     stato_msg.stato = stato;
     stato_msg.stanza_target = obiettivo.id_stanza;
     stato_msg.commento = "Inizio la navigazione verso " + obiettivo.id_stanza;
-    
 
     geometry_msgs::PoseStamped new_goal_msg;
 
@@ -177,9 +155,7 @@ void obiettivo_cb(const dr_ped::Obiettivo &obiettivo)
 
     target_positon[0] = new_goal_msg.pose.position.x;
     target_positon[1] = new_goal_msg.pose.position.y;
-  }
-  else
-  {
+  } else {
     stato_msg.stato = stato;
     stato_msg.stanza_target = stanza_target;
     stato_msg.commento = "Sono già in navigazione verso " + stanza_target;
@@ -187,8 +163,7 @@ void obiettivo_cb(const dr_ped::Obiettivo &obiettivo)
   logger(stato_msg);
 }
 
-int main(int argc, char **argv)
-{
+int main(int argc, char **argv) {
   ros::init(argc, argv, "dr_ped");
   ros::NodeHandle n;
   ros::Rate loop_rate(10);
@@ -203,5 +178,6 @@ int main(int argc, char **argv)
   timer = n.createTimer(ros::Duration(5), check_cb);
 
   ros::spin();
-  //wait_msg.reset();
+  timer.stop();
+  // wait_msg.reset();
 }
