@@ -208,7 +208,7 @@ $(document).ready(() => {
     
     $("#conferma").on('click', (event) => {
         var conferma = new ROSLIB.Message({
-            data : "conferma"
+            data : utente
         });
         pub_conferma.publish(conferma);
     });

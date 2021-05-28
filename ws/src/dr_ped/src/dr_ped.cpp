@@ -30,6 +30,7 @@ vector<float> target_positon(2, 0);
 vector<float> old_position(2, 0);
 vector<float> current_position(2, 0);
 vector<string> utenti_autorizzati = {"Dennis:20","Sara:14","Marco:19"};
+string lock_utente="";
 size_t seq = 10;
 
 void logger(dr_ped::Stato stato)
@@ -94,10 +95,12 @@ void check_cb(const ros::TimerEvent &event)
       logger(stato_msg);
       //https://answers.ros.org/question/293890/how-to-use-waitformessage-properly/
       std_msgs::StringConstPtr wait_msg = ros::topic::waitForMessage<std_msgs::String>("/conferma_dr_ped", ros::Duration(30));
-      if (wait_msg)
-        stato_msg.commento = "Il robot ha ricevuto conferma, tornerà presto disponibile";
+      if (wait_msg){
+        lock_utente= wait_msg->data;
+        stato_msg.commento = "Il robot ha ricevuto conferma, aspetto ordini da "+lock_utente.substr(0, lock_utente.find(":"));
+      }
       else
-        stato_msg.commento = "Il robot non ha ricevuto conferma ma è arrivato, tornerà presto disponibile";
+        stato_msg.commento = "Il robot non ha ricevuto conferma ma è arrivato, tornerà presto disponibile per tutti";
       stato = disponibile;
     }
     break;
@@ -123,19 +126,39 @@ int check_sender(string sender){
 
 }
 
+int check_lock(string sender){
+  if(lock_utente!=""){
+    if(sender!=lock_utente){
+      dr_ped::Stato stato_msg;
+      string utente = lock_utente.substr(0, lock_utente.find(":"));
+      stato_msg.stato = stato;
+      stato_msg.stanza_target = stanza_target;
+      stato_msg.commento = "Il robot è attualmente occupato con una consegna, ricevo ordini solo dall'utente "+utente;
+      logger(stato_msg);
+      return -1;
+    }
+    else{
+      lock_utente="";
+      return 0;
+    }   
+  }
+}
+
 void obiettivo_cb(const dr_ped::Obiettivo &obiettivo)
 { 
-  if(check_sender(obiettivo.sender)<0) return;
+  if(check_sender(obiettivo.sender)) return;
   
   dr_ped::Stato stato_msg;
-
+  
   if (stato == disponibile)
   {
+    if(check_lock(obiettivo.sender)) return;
     stato = navigazione;
     stanza_target = obiettivo.id_stanza;
     stato_msg.stato = stato;
     stato_msg.stanza_target = obiettivo.id_stanza;
     stato_msg.commento = "Inizio la navigazione verso " + obiettivo.id_stanza;
+    
 
     geometry_msgs::PoseStamped new_goal_msg;
 
@@ -166,7 +189,6 @@ void obiettivo_cb(const dr_ped::Obiettivo &obiettivo)
 
 int main(int argc, char **argv)
 {
-
   ros::init(argc, argv, "dr_ped");
   ros::NodeHandle n;
   ros::Rate loop_rate(10);
@@ -181,4 +203,5 @@ int main(int argc, char **argv)
   timer = n.createTimer(ros::Duration(5), check_cb);
 
   ros::spin();
+  //wait_msg.reset();
 }
