@@ -79,9 +79,14 @@ void check_cb(const ros::TimerEvent &event) {
       // https://answers.ros.org/question/293890/how-to-use-waitformessage-properly/
       std_msgs::StringConstPtr wait_msg = ros::topic::waitForMessage<std_msgs::String>("/conferma_dr_ped", ros::Duration(30));
       if (wait_msg) {
-        lock_utente = wait_msg->data;
-        stato_msg.commento = "Il robot ha ricevuto conferma, aspetto ordini da " + lock_utente.substr(0, lock_utente.find(":"));
-      } else
+        if(find(utenti_autorizzati.begin(), utenti_autorizzati.end(), wait_msg->data) != utenti_autorizzati.end()){
+          lock_utente = wait_msg->data;
+          stato_msg.commento = "Il robot ha ricevuto conferma, aspetta ordini da " + lock_utente.substr(0, lock_utente.find(":"));
+        }
+        else
+          stato_msg.commento = "Il robot ha ricevuto conferma, da un ospite, tornerà presto disponibile per tutti";
+      } 
+      else
         stato_msg.commento = "Il robot non ha ricevuto conferma ma è arrivato, tornerà presto disponibile per tutti";
       stato = disponibile;
     }
