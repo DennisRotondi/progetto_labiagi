@@ -7,6 +7,7 @@ In conclusione il programma si presta ad essere utilizzato su qualsiasi mappa e 
 
 # Per utilizzarlo:
 #### dentro srrg2_labiagi
+(i comandi sono tarati per la mia macchina, usare il path che porta alla directory corretta)
 
 ```sh 
 source devel/setup.bash  
