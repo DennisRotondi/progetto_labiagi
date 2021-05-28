@@ -50,7 +50,7 @@ Tutto ciò che resta da fare è loggarsi, inserire un file come "test.json" che 
 
 Punti nel json.test presi con rostopic echo /move_base_simple/goal
 
-demo_yt (versione vecchia): https://www.youtube.com/watch?v=Z7oPy9IhsZQ
+demo_yt: https://www.youtube.com/watch?v=a57-CVdI46s
 
 ref: http://wiki.ros.org/rosbridge_suite
 
