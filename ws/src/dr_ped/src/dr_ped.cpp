@@ -180,8 +180,8 @@ void init_autorizzati(){
   string s;
   if(file.is_open()){
     while (getline(file, s)) {
-    cerr << s << endl;
-    utenti_autorizzati.push_back(s);
+      cerr << s << endl;
+      utenti_autorizzati.push_back(s);
     }
   }
   else {
