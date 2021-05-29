@@ -20,7 +20,7 @@ e da localhost:9001 lanciare: roscore, stage, mapserver, rviz e aprire il file d
 
 #### usare dr_ped
 
-Clonare questa repository sulla propria macchina, inizializzare il workspace con catkin_init, buildare con catkin_make e dentro ws fare il source devel/setup.bash (per avere i messaggi personalizzati creati), poi lanciare rosbridge: 
+Clonare questa repository sulla propria macchina, dentro ws inizializzare il workspace con catkin_init, buildare con catkin_make e fare il source devel/setup.bash (per avere i messaggi personalizzati creati), poi lanciare rosbridge: 
 ```sh 
 roslaunch rosbridge_server rosbridge_websocket.launch 
 ```
