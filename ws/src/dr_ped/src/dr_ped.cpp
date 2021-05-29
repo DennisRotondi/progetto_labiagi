@@ -167,7 +167,7 @@ void obiettivo_cb(const dr_ped::Obiettivo &obiettivo) {
     target_positon[0] = new_goal_msg.pose.position.x;
     target_positon[1] = new_goal_msg.pose.position.y;
   } else
-    log_string("Sono già in navigazione verso " + stanza_target);
+      log_string("Sono già in navigazione verso " + stanza_target);
 }
 
 int main(int argc, char **argv) {
