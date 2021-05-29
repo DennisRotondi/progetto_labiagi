@@ -16,7 +16,7 @@ cd /home/dennis/labiagi_2020_21/workspaces/srrg2_labiagi/src/srrg2_navigation_2d
 ```
 e da localhost:9001 lanciare: roscore, stage, mapserver, rviz e aprire il file di config desiderato, localize, planner e un a_follower (i test sono stati fatti con lo static).
 
-Clonare questa repository sulla propria macchina, dentro ws fare il source devel/setup.bash (per avere i messaggi personalizzati creati), poi lanciare rosbridge: 
+Clonare questa repository sulla propria macchina, inizializzare il workspace con catkin_init, buildare con catkin_make e dentro ws fare il source devel/setup.bash (per avere i messaggi personalizzati creati), poi lanciare rosbridge: 
 ```sh 
 roslaunch rosbridge_server rosbridge_websocket.launch 
 ```
