@@ -94,12 +94,12 @@ function setup_ros(){
     
     ros.on('error', (error) => {
         log('Errore di connessione con il robot.', error);
-        chiudi_connessione()
+        chiudi_connessione();
     });
     
     ros.on('close', () => {
         log('La connessione con il robot è stata interrotta.');
-        chiudi_connessione()
+        chiudi_connessione();
     });
     
     pub_obiettivo = new ROSLIB.Topic({
