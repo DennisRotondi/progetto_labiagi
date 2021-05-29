@@ -26,7 +26,7 @@ roslaunch rosbridge_server rosbridge_websocket.launch
 ```
 questo permette di creare il webserver su cui far circolare i msgs di ROS, è come se il client diventasse un nodo.
 
-Fare ancora il source nella cartella ws e poi lanciare 
+Fare ancora il source nella cartella ws (se si sta usando un'altra istanza del terminale) e poi lanciare 
 
 ```sh 
 rosrun dr_ped dr_ped
