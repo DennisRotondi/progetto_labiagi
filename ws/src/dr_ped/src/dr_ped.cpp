@@ -12,30 +12,63 @@ using namespace std;
 enum status { disponibile = 0, navigazione = 1, attesa_conferma = 2 };
 
 // globals
-status stato = disponibile;
-string stanza_target = ""; // di fatto è l'ultima stanza raggiunta, quella dove si trova attualmente
+
 ros::Publisher pub_goal;
 ros::Publisher pub_log;
 ros::Subscriber sub_ob;
 ros::Subscriber sub_tf;
 ros::Timer timer;
 tf2_ros::Buffer tfBuffer;
-int stuck_count = 0;
+
 vector<float> target_positon(2, 0);
 vector<float> old_position(2, 0);
 vector<float> current_position(2, 0);
 vector<string> utenti_autorizzati = {"Dennis:20", "Sara:14", "Marco:19"};
 string lock_utente = "";
+status stato = disponibile;
+string stanza_target = ""; // di fatto è l'ultima stanza raggiunta, quella dove si trova attualmente
 size_t seq = 10;
+int stuck_count = 0;
 
 void logger(dr_ped::Stato stato) {
   // cerr << stato.commento << endl;
   pub_log.publish(stato);
 }
 
+void log_string(string msg){
+  dr_ped::Stato stato_msg;
+  stato_msg.stato = stato;
+  stato_msg.stanza_target = stanza_target;
+  stato_msg.commento = msg;
+  logger(stato_msg);
+}
+
+int check_autorizzato(string user){
+  return find(utenti_autorizzati.begin(), utenti_autorizzati.end(), user) != utenti_autorizzati.end();
+}
+
+int check_sender(string sender) {
+  if (check_autorizzato(sender)) 
+    return 0;
+  else {
+    log_string("Un utente non autorizzato ha provato a dare un comando al robot. Ricordo che un ospite può solo confermare l'arrivo.");      
+    return -1;
+  }
+}
+
+int check_lock(string sender) {
+  if (lock_utente == "") return 0;
+  if (sender != lock_utente) {
+    string utente = lock_utente.substr(0, lock_utente.find(":"));
+    log_string("Il robot è attualmente occupato con una consegna, riceve ordini solo dall'utente " + utente);
+    return -1;
+  } else {
+    lock_utente = "";
+    return 0;
+  }
+}
 // aggiornamento posizione per i check
-void get_position() // arg se come listnerconst tf2_msgs::TFMessage &tf
-{
+void get_position() {// arg se come listner: const tf2_msgs::TFMessage &tf
   if (tfBuffer.canTransform("map", "base_link", ros::Time(0))) {
     geometry_msgs::TransformStamped transformStamped;
     transformStamped = tfBuffer.lookupTransform("map", "base_link", ros::Time(0));
@@ -46,9 +79,11 @@ void get_position() // arg se come listnerconst tf2_msgs::TFMessage &tf
   }
 }
 
-float distance(vector<float> a, vector<float> b) { return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2)); }
+float distance(vector<float> a, vector<float> b) { 
+  return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2)); 
+}
 
-void check_cb(const ros::TimerEvent &event) {
+void update_status_cb(const ros::TimerEvent &event) {
   dr_ped::Stato stato_msg;
   stato_msg.stato = stato;
   stato_msg.stanza_target = stanza_target;
@@ -79,7 +114,7 @@ void check_cb(const ros::TimerEvent &event) {
       // https://answers.ros.org/question/293890/how-to-use-waitformessage-properly/
       std_msgs::StringConstPtr wait_msg = ros::topic::waitForMessage<std_msgs::String>("/conferma_dr_ped", ros::Duration(30));
       if (wait_msg) {
-        if(find(utenti_autorizzati.begin(), utenti_autorizzati.end(), wait_msg->data) != utenti_autorizzati.end()){
+        if(check_autorizzato(wait_msg->data)){
           lock_utente = wait_msg->data;
           stato_msg.commento = "Il robot ha ricevuto conferma, aspetta ordini da " + lock_utente.substr(0, lock_utente.find(":"));
         }
@@ -98,49 +133,16 @@ void check_cb(const ros::TimerEvent &event) {
   logger(stato_msg);
 }
 
-int check_sender(string sender) {
-  if (find(utenti_autorizzati.begin(), utenti_autorizzati.end(), sender) != utenti_autorizzati.end()) {
-    return 0;
-  } else {
-    dr_ped::Stato stato_msg;
-    stato_msg.stato = stato;
-    stato_msg.stanza_target = stanza_target;
-    stato_msg.commento = "Un utente non autorizzato ha provato a dare un comando al robot. Ricordo che un ospite può solo confermare l'arrivo.";
-    logger(stato_msg);
-    return -1;
-  }
-}
-
-int check_lock(string sender) {
-  if (lock_utente == "") return 0;
-  if (sender != lock_utente) {
-    dr_ped::Stato stato_msg;
-    string utente = lock_utente.substr(0, lock_utente.find(":"));
-    stato_msg.stato = stato;
-    stato_msg.stanza_target = stanza_target;
-    stato_msg.commento = "Il robot è attualmente occupato con una consegna, riceve ordini solo dall'utente " + utente;
-    logger(stato_msg);
-    return -1;
-  } else {
-    lock_utente = "";
-    return 0;
-  }
-}
-
 void obiettivo_cb(const dr_ped::Obiettivo &obiettivo) {
+  //per capire se è un utente autorizzato
   if (check_sender(obiettivo.sender))
     return;
-
-  dr_ped::Stato stato_msg;
-
   if (stato == disponibile) {
     if (check_lock(obiettivo.sender))
       return;
     stato = navigazione;
     stanza_target = obiettivo.id_stanza;
-    stato_msg.stato = stato;
-    stato_msg.stanza_target = obiettivo.id_stanza;
-    stato_msg.commento = "Inizio la navigazione verso " + obiettivo.id_stanza;
+    log_string("Inizio la navigazione verso " + obiettivo.id_stanza);
 
     geometry_msgs::PoseStamped new_goal_msg;
 
@@ -160,11 +162,8 @@ void obiettivo_cb(const dr_ped::Obiettivo &obiettivo) {
     target_positon[0] = new_goal_msg.pose.position.x;
     target_positon[1] = new_goal_msg.pose.position.y;
   } else {
-    stato_msg.stato = stato;
-    stato_msg.stanza_target = stanza_target;
-    stato_msg.commento = "Sono già in navigazione verso " + stanza_target;
+    log_string("Sono già in navigazione verso " + stanza_target);
   }
-  logger(stato_msg);
 }
 
 int main(int argc, char **argv) {
@@ -176,12 +175,9 @@ int main(int argc, char **argv) {
   tf2_ros::TransformListener tfListener(tfBuffer);
   pub_log = n.advertise<dr_ped::Stato>("/logger_web", 1000);
   sub_ob = n.subscribe("obiettivo", 1000, obiettivo_cb);
-
-  // sub_tf = n.subscribe("tf", 1000, get_position);
   get_position();
-  timer = n.createTimer(ros::Duration(5), check_cb);
+  timer = n.createTimer(ros::Duration(5), update_status_cb);
 
   ros::spin();
   timer.stop();
-  // wait_msg.reset();
 }
