@@ -112,19 +112,18 @@ int check_sender(string sender) {
 }
 
 int check_lock(string sender) {
-  if (lock_utente != "") {
-    if (sender != lock_utente) {
-      dr_ped::Stato stato_msg;
-      string utente = lock_utente.substr(0, lock_utente.find(":"));
-      stato_msg.stato = stato;
-      stato_msg.stanza_target = stanza_target;
-      stato_msg.commento = "Il robot è attualmente occupato con una consegna, riceve ordini solo dall'utente " + utente;
-      logger(stato_msg);
-      return -1;
-    } else {
-      lock_utente = "";
-      return 0;
-    }
+  if (lock_utente == "") return 0;
+  if (sender != lock_utente) {
+    dr_ped::Stato stato_msg;
+    string utente = lock_utente.substr(0, lock_utente.find(":"));
+    stato_msg.stato = stato;
+    stato_msg.stanza_target = stanza_target;
+    stato_msg.commento = "Il robot è attualmente occupato con una consegna, riceve ordini solo dall'utente " + utente;
+    logger(stato_msg);
+    return -1;
+  } else {
+    lock_utente = "";
+    return 0;
   }
 }
 
