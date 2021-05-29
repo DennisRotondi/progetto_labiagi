@@ -54,7 +54,7 @@ Potrebbe tornare utile dare un ip statico al robot per poterlo raggiungere sempr
 - Gateway: <ottenibile con ip route | grep default>
 - DNS: 8.8.8.8, 192.168.1.1
 
-Punti nel json.test presi con rostopic echo /move_base_simple/goal dando poi gli obiettivi da terminale
+Punti nel json.test presi con rostopic echo /move_base_simple/goal dando poi gli obiettivi da rviz.
 
 demo_yt: https://www.youtube.com/watch?v=a57-CVdI46s
 
