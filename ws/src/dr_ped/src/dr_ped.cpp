@@ -7,6 +7,8 @@
 #include "tf2_msgs/TFMessage.h"
 #include <tf2_ros/transform_listener.h>
 #include <vector>
+#include <fstream>
+
 using namespace std;
 
 enum status { disponibile = 0, navigazione = 1, attesa_conferma = 2 };
@@ -23,7 +25,8 @@ tf2_ros::Buffer tfBuffer;
 vector<float> target_positon(2, 0);
 vector<float> old_position(2, 0);
 vector<float> current_position(2, 0);
-vector<string> utenti_autorizzati = {"Dennis:20", "Sara:14", "Marco:19"};
+vector<string> utenti_autorizzati;
+
 string lock_utente = "";
 status stato = disponibile;
 string stanza_target = ""; // di fatto è l'ultima stanza raggiunta, quella dove si trova attualmente
@@ -170,7 +173,27 @@ void obiettivo_cb(const dr_ped::Obiettivo &obiettivo) {
       log_string("Sono già in navigazione verso " + stanza_target);
 }
 
+void init_autorizzati(){
+  cerr << "Saranno considerati autorizzati tutti gli utenti presenti nel file autorizzati.txt della cartella corrente" << endl;
+  ifstream file;
+  file.open("autorizzati.txt");
+  string s;
+  if(file.is_open()){
+    while (getline(file, s)) {
+    cerr << s << endl;
+    utenti_autorizzati.push_back(s);
+    }
+  }
+  else {
+    cerr << "Non c'è un file autorizzati.txt in questa cartella, autorizzati solo Dennis:20, Sara:14, Marco:19" << endl;
+    utenti_autorizzati={"Dennis:20", "Sara:14", "Marco:19"};
+  }
+}
+
 int main(int argc, char **argv) {
+  
+  init_autorizzati();
+
   ros::init(argc, argv, "dr_ped");
   ros::NodeHandle n;
   ros::Rate loop_rate(10);
