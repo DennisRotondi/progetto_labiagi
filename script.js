@@ -1,12 +1,4 @@
 var waypoints;
-//= { 
-//     "stanza1" : [58,13,0],
-//     "stanza2" : [53,18,0],
-//     "stanza3" : [0,0,0],
-//     "stanza4" : [0,0,0],
-//     "stanza5" : [0,0,0],
-//     "stanza6" : [0,0,0]
-// }
 
 var websocket; //192.168.1.69:9090 se da altra macchina
 var utente;
@@ -50,8 +42,7 @@ function update_status(stato_msg){
         else{
             stato=stati.non_disponibile;
         }
-    }
-    
+    }    
     //update in base al pub
     handler_status();
 }
@@ -72,17 +63,17 @@ function handler_status(){
         case stati.non_disponibile:
             handler_buttons($(".btn"),$(""));
             break;
-            case stati.in_arrivo:
-                handler_buttons($(".btn"),$(""));
-                break;
-                case stati.disp_corrente:
-                    handler_buttons($(".btn"),$(".stanza"));
-                    break;
-                    case stati.disponibile:
-                        handler_buttons($(".btn"),$("#chiama"));
+        case stati.in_arrivo:
+            handler_buttons($(".btn"),$(""));
             break;
-            case stati.attesa_conferma:
-                handler_buttons($(".btn"),$("#conferma"));   
+        case stati.disp_corrente:
+            handler_buttons($(".btn"),$(".stanza"));
+            break;
+        case stati.disponibile:
+            handler_buttons($(".btn"),$("#chiama"));
+            break;
+        case stati.attesa_conferma:
+            handler_buttons($(".btn"),$("#conferma"));   
     }
 }
 
@@ -216,5 +207,4 @@ $(document).ready(() => {
     $("#chiama").on('click', (event) => {
         send_obiettivo(stanza_corrente);
     });
-
 });

@@ -43,6 +43,14 @@ void log_string(string msg){
   logger(stato_msg);
 }
 
+string get_nome_from_id(string id){
+  return id.substr(0, id.find(":"));
+}
+
+float distance(vector<float> a, vector<float> b) { 
+  return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2)); 
+}
+
 int check_autorizzato(string user){
   return find(utenti_autorizzati.begin(), utenti_autorizzati.end(), user) != utenti_autorizzati.end();
 }
@@ -59,8 +67,7 @@ int check_sender(string sender) {
 int check_lock(string sender) {
   if (lock_utente == "") return 0;
   if (sender != lock_utente) {
-    string utente = lock_utente.substr(0, lock_utente.find(":"));
-    log_string("Il robot è attualmente occupato con una consegna, riceve ordini solo dall'utente " + utente);
+    log_string("Il robot è attualmente occupato con una consegna, riceve ordini solo dall'utente " + get_nome_from_id(lock_utente));
     return -1;
   } else {
     lock_utente = "";
@@ -79,17 +86,14 @@ void get_position() {// arg se come listner: const tf2_msgs::TFMessage &tf
   }
 }
 
-float distance(vector<float> a, vector<float> b) { 
-  return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2)); 
-}
-
 void update_status_cb(const ros::TimerEvent &event) {
   dr_ped::Stato stato_msg;
   stato_msg.stato = stato;
   stato_msg.stanza_target = stanza_target;
   switch (stato) {
   case disponibile:
-    stato_msg.commento = "Il robot è disponibile a ricevere istruzioni";
+    if(lock_utente != "") stato_msg.commento = "Il robot attende istruzioni da "+get_nome_from_id(lock_utente);    
+    else stato_msg.commento = "Il robot è disponibile a ricevere istruzioni";
     break;
   case navigazione:
     get_position();
@@ -116,14 +120,15 @@ void update_status_cb(const ros::TimerEvent &event) {
       if (wait_msg) {
         if(check_autorizzato(wait_msg->data)){
           lock_utente = wait_msg->data;
-          stato_msg.commento = "Il robot ha ricevuto conferma, aspetta ordini da " + lock_utente.substr(0, lock_utente.find(":"));
+          stato_msg.commento = "Il robot ha ricevuto conferma, aspetta ordini da " + get_nome_from_id(lock_utente);
         }
         else
-          stato_msg.commento = "Il robot ha ricevuto conferma, da un ospite, tornerà presto disponibile per tutti";
+          stato_msg.commento = "Il robot ha ricevuto conferma da un ospite, tornerà presto disponibile per tutti";
       } 
       else
         stato_msg.commento = "Il robot non ha ricevuto conferma ma è arrivato, tornerà presto disponibile per tutti";
       stato = disponibile;
+      stato_msg.stato = stato;
     }
     break;
   case attesa_conferma:
@@ -161,9 +166,8 @@ void obiettivo_cb(const dr_ped::Obiettivo &obiettivo) {
 
     target_positon[0] = new_goal_msg.pose.position.x;
     target_positon[1] = new_goal_msg.pose.position.y;
-  } else {
+  } else
     log_string("Sono già in navigazione verso " + stanza_target);
-  }
 }
 
 int main(int argc, char **argv) {
