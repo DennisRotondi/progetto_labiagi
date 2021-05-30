@@ -17,7 +17,6 @@ enum status {disponibile = 0, navigazione = 1, attesa_conferma = 2};
 ros::Publisher pub_goal;
 ros::Publisher pub_log;
 ros::Subscriber sub_ob;
-ros::Subscriber sub_tf;
 ros::Timer timer;
 tf2_ros::Buffer tfBuffer;
 
