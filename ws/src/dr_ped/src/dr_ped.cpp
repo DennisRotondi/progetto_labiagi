@@ -11,10 +11,9 @@
 
 using namespace std;
 
-enum status { disponibile = 0, navigazione = 1, attesa_conferma = 2 };
+enum status {disponibile = 0, navigazione = 1, attesa_conferma = 2};
 
 // globals
-
 ros::Publisher pub_goal;
 ros::Publisher pub_log;
 ros::Subscriber sub_ob;
@@ -27,18 +26,19 @@ vector<float> old_position(2, 0);
 vector<float> current_position(2, 0);
 vector<string> utenti_autorizzati;
 
-string lock_utente = "";
-status stato = disponibile;
-string stanza_target = ""; // di fatto è l'ultima stanza raggiunta, quella dove si trova attualmente
-size_t seq = 10;
-int stuck_count = 0;
+//inizializzate di default essendo globali string a "" e int a 0
+status stato;
+string lock_utente; //utente che attualmente può controllare il robot, è l'ultimo autorizzato che ha confermato
+string stanza_target; // di fatto è l'ultima stanza raggiunta, quella dove si trova attualmente
+size_t seq; //sequenza per i pacchetti di navgoal
+int stuck_count; //numero di volte che il robot è risultato bloccato
 
-void logger(dr_ped::Stato stato) {
+void logger(const dr_ped::Stato stato) {
   // cerr << stato.commento << endl;
   pub_log.publish(stato);
 }
 
-void log_string(string msg){
+void log_string(const string msg){
   dr_ped::Stato stato_msg;
   stato_msg.stato = stato;
   stato_msg.stanza_target = stanza_target;
@@ -46,19 +46,19 @@ void log_string(string msg){
   logger(stato_msg);
 }
 
-string get_nome_from_id(string id){
+string get_nome_from_id(const string id){
   return id.substr(0, id.find(":"));
 }
 
-float distance(vector<float> a, vector<float> b) { 
+float distance(const vector<float> a, const vector<float> b) { 
   return sqrt(pow(a[0] - b[0], 2) + pow(a[1] - b[1], 2)); 
 }
 
-int check_autorizzato(string user){
+int check_autorizzato(const string user){
   return find(utenti_autorizzati.begin(), utenti_autorizzati.end(), user) != utenti_autorizzati.end();
 }
 
-int check_sender(string sender) {
+int check_sender(const string sender) {
   if (check_autorizzato(sender)) 
     return 0;
   else {
@@ -67,7 +67,7 @@ int check_sender(string sender) {
   }
 }
 
-int check_lock(string sender) {
+int check_lock(const string sender) {
   if (lock_utente == "") return 0;
   if (sender != lock_utente) {
     log_string("Il robot è attualmente occupato con una consegna, riceve ordini solo dall'utente " + get_nome_from_id(lock_utente));
@@ -176,13 +176,14 @@ void obiettivo_cb(const dr_ped::Obiettivo &obiettivo) {
 void init_autorizzati(){
   cerr << "Saranno considerati autorizzati tutti gli utenti presenti nel file autorizzati.txt della cartella corrente" << endl;
   ifstream file;
-  file.open("autorizzati.txt");
   string s;
+  file.open("autorizzati.txt");
   if(file.is_open()){
     while (getline(file, s)) {
       cerr << s << endl;
       utenti_autorizzati.push_back(s);
     }
+    file.close();
   }
   else {
     cerr << "Non c'è un file autorizzati.txt in questa cartella, autorizzati solo Dennis:20, Sara:14, Marco:19" << endl;
@@ -190,8 +191,10 @@ void init_autorizzati(){
   }
 }
 
-int main(int argc, char **argv) {
-  
+int main(int argc, char **argv) {  
+
+  stato = disponibile; //di default è inizializzato a 0, ma in futuro potrebbe cambiare il valore di disponibile, quindi lo setto correttamente qua
+
   init_autorizzati();
 
   ros::init(argc, argv, "dr_ped");
