@@ -21,7 +21,10 @@ e da localhost:9001 lanciare: roscore, stage, mapserver, rviz e aprire il file d
 #### usare dr_ped
 
 Clonare questa repository sulla propria macchina, dentro ws inizializzare il workspace con catkin_init, buildare con catkin_make e fare il source devel/setup.bash (per avere i messaggi personalizzati creati), poi lanciare rosbridge: 
-```sh 
+```sh
+sudo apt-get install ros-<rosdistro>-rosbridge-server
+```
+```sh
 roslaunch rosbridge_server rosbridge_websocket.launch 
 ```
 questo permette di creare il webserver su cui far circolare i msgs di ROS, è come se il client diventasse un nodo.
